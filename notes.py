@@ -22,7 +22,7 @@ class Note_shelf():
 		self.name = name
 		self.path = path
 
-	def add_notes(self,note):
+	def add_notes(self, note):
 		self.catalog[note.name] = note.content
 		self.save_notes()
 
@@ -54,12 +54,11 @@ def main_menu(shelf):
 
 	if command == 'new':
 		file_name = input('Введите название заметки: ')
-		file_content = input('Введите описание заметки:\n')
-		output_text = ''
-		m = 0
-		string_length = 96
-
-		shelf.add_notes(note)
+		file_path = shelf.path + '/' + file_name
+		os.system('nano '+file_path)
+		
+		with open(file_path,'r') as file:
+			shelf.add_notes(Note(file_name,' '.join(file.readlines())))
 
 	elif command == 'show':
 		shelf.load_notes()
