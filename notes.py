@@ -26,7 +26,6 @@ class Note_shelf():
 		self.catalog[note.name] = note.content
 		self.save_notes()
 
-
 	def save_notes(self):
 		with open(os.path.join(self.path,self.name)+'.dat','wb') as f:
 			pickle.dump(self.catalog, f)
@@ -48,7 +47,10 @@ def main_menu(shelf):
 	"""
 	shelf.load_notes()
 
-	command = input('>>> ').strip()
+	if len(argv)!=1:
+		command = ' '.join(argv[1:])
+	else:
+		command = input('>>> ').strip()
 
 	if command == 'new':
 		file_name = input('Введите название заметки: ')
@@ -57,23 +59,6 @@ def main_menu(shelf):
 		m = 0
 		string_length = 96
 
-		while True:
-			file_content =file_content +'\n' + input()
-			if file_content[-3:]=='end': break
-
-		length = len(file_content)-1
-
-		for i in range(0,length):
-			if file_content[i] == '\n':
-				output_text+= '\n' + file_content[i-m:i+1].strip()
-				m = -1
-			elif m >= string_length - 1 or i == length:
-				if file_content[i+1]==' ' or (not file_content[i].isalpha() and file_content[i+1].isalpha()):
-					output_text += '\n' + file_content[i-m:i+1].strip()
-					m = -1
-
-			m=m+1
-		note = Note(file_name, output_text.rstrip('en'))
 		shelf.add_notes(note)
 
 	elif command == 'show':
@@ -82,6 +67,7 @@ def main_menu(shelf):
 		for i in shelf.catalog:
 			print("{0} ".format(k)+i)
 			k=k+1
+		print()
 
 	elif command == 'help':
 		print('\tnew - создать новую записку\n\tshow - посмотреть имеющиеся\n\topen <название> - посмотреть конкретную запись\n\topen all - вывести содержимое ВСЕХ записей\n\thelp - вызов списка команд\n\texit - выход')
@@ -90,12 +76,6 @@ def main_menu(shelf):
 		filename = shelf.get_key(command)
 		if filename != None:
 			print('\n\t' + filename + shelf.catalog[filename])
-	
-	elif 'add' in command:
-		filename = shelf.get_key(command)
-		if filename != None:
-			shelf.catalog[filename]+='\n' + input('Введите добавочный текст:\n')
-			shelf.save_notes()
 
 	elif command == 'exit':
 		return
@@ -107,10 +87,9 @@ def main_menu(shelf):
 			shelf.save_notes()
 		except:
 			print('Введи цифру правильно!!!')
-	main_menu(shelf)
-
+	if len(argv)==1:
+		main_menu(shelf)
 # Main
-print(main_menu.__doc__)
 shelf = Note_shelf('notes')
 main_menu(shelf)
 
