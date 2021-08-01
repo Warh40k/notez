@@ -43,7 +43,7 @@ class Note_shelf():
 
 def main_menu(shelf):
     """
-    Привет! Этот консольный менеджер записок был написан Никитой Зинкевичем. Для того чтобы начать, набери 'help' для получения списка команд. Удачи в поиске новых и хранении старых идей!!!
+    NoteZ 1.0. Written by Nikita Zinkevich. Type 'help' to start.
     """
     shelf.load_notes()
 
@@ -54,7 +54,7 @@ def main_menu(shelf):
 
     if command == 'new':
         file_name = input('Введите название заметки: ')
-        file_path = shelf.path + '/' + file_name
+        file_path = shelf.path + '/.' + file_name
         os.system('nano '+file_path)
 
         with open(file_path,'r') as file:
