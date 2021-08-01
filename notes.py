@@ -59,6 +59,7 @@ def main_menu(shelf):
 		
 		with open(file_path,'r') as file:
 			shelf.add_notes(Note(file_name,' '.join(file.readlines())))
+			os.remove(file_path)
 
 	elif command == 'show':
 		shelf.load_notes()
