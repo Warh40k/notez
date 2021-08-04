@@ -41,17 +41,21 @@ class Note_shelf():
 shelf = Note_shelf('notes')
 shelf.load_notes()
 
-parser = argparse.ArgumentParser(description="NoteZ 1.0. Written by Nikita Zinkevich. Type '--help' to start.\n\tnew - создать новую записку\n\tshow - посмотреть имеющиеся\n\topen <название> - посмотреть конкретную запись\n\topen all - вывести содержимое ВСЕХ записей\n\thelp - вызов списка команд\n\texit - выход", formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(description="NoteZ 1.0. Written by Nikita Zinkevich. Type '--help' to start.\nnew - создать новую записку\nshow - посмотреть имеющиеся\nopen <название> - посмотреть конкретную запись\nopen all - вывести содержимое ВСЕХ записей\nhelp - вызов списка команд\nexit - выход", formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('option', metavar='option', type=str)
 parser.add_argument('number', metavar='num', type=int, nargs='?')
 args=parser.parse_args()
 command = args.option
+file_path=shelf.path+'/.'
 
-target_key = shelf.get_key(args.number) if args.number!=None else None
+if args.number!=None:
+    target_key = shelf.get_key(args.number)
+    file_path += str(args.number)
+else:
+    file_path += str(len(shelf.catalog)-1)
 
 if command == 'new':
     file_name = input('Введите название заметки: ')
-    file_path = shelf.path + '/.' + file_name
     os.system('nano '+file_path)
 
     with open(file_path,'r') as file:
@@ -67,14 +71,23 @@ elif command == 'list':
     print()
 
 elif command == 'help':
-    print('\tnew - создать новую записку\n\tshow - посмотреть имеющиеся\n\topen <название> - посмотреть конкретную запись\n\topen all - вывести содержимое ВСЕХ записей\n\thelp - вызов списка команд\n\texit - выход')
+    print('new - создать новую записку\nshow - посмотреть имеющиеся\nopen <название> - посмотреть конкретную запись\nopen all - вывести содержимое ВСЕХ записей\nhelp - вызов списка команд\nexit - выход')
 
 elif 'show' in command:
     try:
-        print('\n\t' + shelf.catalog[target_key])
+        print(f'\n\t{target_key}\n\n{shelf.catalog[target_key]}')
     except:
         print('Error: not valid number')
 
+elif 'edit' in command:
+    try:
+        os.system(f'echo "{shelf.catalog[target_key]}">{file_path}; nano {file_path}')
+        with open(file_path,'r') as file:
+            shelf.catalog[target_key] = ' '.join(file.readlines())
+            shelf.save_notes()
+        os.remove(file_path)
+    except:
+        print('Error: not valid number')
 elif 'rm' in command:
     try:
         del shelf.catalog[target_key]
