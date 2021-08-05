@@ -1,4 +1,5 @@
-﻿import os, pickle, argparse
+﻿#! /usr/bin/python
+import os, pickle, argparse
 
 class Note():
     name=''
@@ -42,8 +43,8 @@ shelf = Note_shelf('notes')
 shelf.load_notes()
 
 parser = argparse.ArgumentParser(description="NoteZ 1.0. Written by Nikita Zinkevich. Type '--help' to start.\nnew - создать новую записку\nshow - посмотреть имеющиеся\nopen <название> - посмотреть конкретную запись\nopen all - вывести содержимое ВСЕХ записей\nhelp - вызов списка команд\nexit - выход", formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('option', metavar='option', type=str)
-parser.add_argument('number', metavar='num', type=int, nargs='?')
+parser.add_argument('option', metavar='OPTION', type=str)
+parser.add_argument('number', metavar='NUM', type=int, nargs='?')
 args=parser.parse_args()
 command = args.option
 file_path=shelf.path+'/.'
@@ -75,7 +76,8 @@ elif command == 'help':
 
 elif 'show' in command:
     try:
-        print(f'\n\t{target_key}\n\n{shelf.catalog[target_key]}')
+        string = f'\n\t{target_key}\n\n{shelf.catalog[target_key]}'
+        os.system(f'echo "{string}" | less')
     except:
         print('Error: not valid number')
 
