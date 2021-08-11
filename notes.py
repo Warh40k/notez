@@ -1,5 +1,5 @@
 ﻿#! /usr/bin/python
-import os, pickle, argparse
+import os, argparse, mariadb, sys, pickle
 
 class Note():
     name=''
@@ -27,18 +27,28 @@ class Note_shelf():
         self.save_notes()
 
     def save_notes(self):
-        with open(os.path.join(self.path,self.name)+'.dat','wb') as f:
-            pickle.dump(self.catalog, f)
-
+        for i in shelf.catalog.keys():
+            cur.execute(f'INSERT INTO noteshelf (note_id, note_name, note_content VALUES(null,"{i}","{shelf.content[i]}"')
     def load_notes(self):
         with open(os.path.join(self.path,self.name)+'.dat', 'rb') as file:
-                self.catalog = pickle.load(file)
+            pickle.load(file)
 
     def get_key(self,num):
         note_keys = list(self.catalog.keys())
         target_key = note_keys[int(num) - 1] if len(note_keys)>=int(num) - 1 else None
         return target_key
+try:
+    con = mariadb.connect(
+        user = 'nikita',
+        password = '428829',
+        host = 'localhost',
+        database = 'notes'
+    )
+    print(mariadb.apilevel)
+except mariadb.Error as e:
+    print(f"Error connecting to MariaDB Platform: {e}")
 
+cur = con.cursor()
 shelf = Note_shelf('notes')
 shelf.load_notes()
 
