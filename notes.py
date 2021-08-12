@@ -27,12 +27,16 @@ class Note_shelf():
         self.save_notes()
 
     def save_notes(self):
+        k = 1
+        cur.execute("DELETE FROM noteshelf;")
         for i in shelf.catalog.keys():
-            cur.execute(f"INSERT INTO noteshelf (note_id, note_name, note_content) VALUES(null,'{i.strip()}','{self.catalog[i].strip()}')")
+            cur.execute(f"INSERT INTO noteshelf (note_id, note_name, note_content) VALUES({k},'{i.strip()}','{self.catalog[i].strip()}')")
+            k+=1
         con.commit()
     def load_notes(self):
-        with open(os.path.join(self.path,self.name)+'.dat', 'rb') as file:
-            self.catalog = pickle.load(file)
+        cur.execute("SELECT note_name, note_content FROM noteshelf;")
+        for (note_name, note_content) in cur:
+            self.catalog[note_name] = note_content
     def get_key(self,num):
         note_keys = list(self.catalog.keys())
         target_key = note_keys[int(num) - 1] if len(note_keys)>=int(num) - 1 else None
@@ -45,8 +49,10 @@ try:
         database = 'notes'
     )
     print(mariadb.apilevel)
+
 except mariadb.Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
+    sys.exit()
 
 cur = con.cursor()
 shelf = Note_shelf('notes')
