@@ -1,5 +1,4 @@
-﻿#! /usr/bin/python
-import os, argparse, mariadb, sys, pickle
+﻿import os, argparse, mariadb, sys
 
 class Note():
     name=''
@@ -9,14 +8,10 @@ class Note():
         self.name = name
         self.content = content
 
-    def rename(self, name):
-        self.name = name
-
 class Note_shelf():
     name = 'notes'
     catalog = {}
     path = ''
-    locker = {}
 
     def __init__(self,name,path = os.path.dirname(__file__)):
         self.name = name
@@ -57,7 +52,6 @@ except mariadb.Error as e:
 cur = con.cursor()
 shelf = Note_shelf('notes')
 shelf.load_notes()
-shelf.save_notes()
 
 parser = argparse.ArgumentParser(description="NoteZ 1.0. Written by Nikita Zinkevich. Type '--help' to start.\nnew - создать новую записку\nshow - посмотреть имеющиеся\nopen <название> - посмотреть конкретную запись\nopen all - вывести содержимое ВСЕХ записей\nhelp - вызов списка команд\nexit - выход", formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('option', metavar='OPTION', type=str)
@@ -74,7 +68,7 @@ else:
 
 if command == 'new':
     file_name = input('Введите название заметки: ')
-    os.system('nano '+file_path)
+    os.system('vim -f '+file_path)
 
     with open(file_path,'r') as file:
         shelf.add_notes(Note(file_name,' '.join(file.readlines())))
@@ -100,7 +94,7 @@ elif 'show' in command:
 
 elif 'edit' in command:
     try:
-        os.system(f'echo "{shelf.catalog[target_key]}">{file_path}; nano {file_path}')
+        os.system(f'echo "{shelf.catalog[target_key]}">{file_path}; vim -f {file_path}')
         with open(file_path,'r') as file:
             shelf.catalog[target_key] = ' '.join(file.readlines())
             shelf.save_notes()
