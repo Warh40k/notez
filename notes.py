@@ -28,11 +28,11 @@ class Note_shelf():
 
     def save_notes(self):
         for i in shelf.catalog.keys():
-            cur.execute(f'INSERT INTO noteshelf (note_id, note_name, note_content VALUES(null,"{i}","{shelf.content[i]}"')
+            cur.execute(f"INSERT INTO noteshelf (note_id, note_name, note_content) VALUES(null,'{i.strip()}','{self.catalog[i].strip()}')")
+        con.commit()
     def load_notes(self):
         with open(os.path.join(self.path,self.name)+'.dat', 'rb') as file:
-            pickle.load(file)
-
+            self.catalog = pickle.load(file)
     def get_key(self,num):
         note_keys = list(self.catalog.keys())
         target_key = note_keys[int(num) - 1] if len(note_keys)>=int(num) - 1 else None
@@ -51,6 +51,7 @@ except mariadb.Error as e:
 cur = con.cursor()
 shelf = Note_shelf('notes')
 shelf.load_notes()
+shelf.save_notes()
 
 parser = argparse.ArgumentParser(description="NoteZ 1.0. Written by Nikita Zinkevich. Type '--help' to start.\nnew - создать новую записку\nshow - посмотреть имеющиеся\nopen <название> - посмотреть конкретную запись\nopen all - вывести содержимое ВСЕХ записей\nhelp - вызов списка команд\nexit - выход", formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('option', metavar='OPTION', type=str)
