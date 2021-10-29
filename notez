@@ -30,18 +30,25 @@ class Note_shelf():
             """, (note.name,note.content))
         con.commit()
 
-#    def save_notes(self):
-#        cur.execute(
+    def refresh(self):
+        k=1
+        cur.execute("""
+            SELECT note_id
+            FROM notez
+            """)
+        for note_id in cur:
+            note_id = k=+1
+        con.commit()
 
-    def load_notes(self):
-        # load notes from bd
-        cur.execute("SELECT note_name, note_content FROM notez")
-        for (note_name, note_content) in cur:
-            self.catalog[note_name] = note_content
+    #def load_notes(self):
+    #    # load notes from bd
+    #    cur.execute("SELECT note_name, note_content FROM notez")
+    #    for (note_name, note_content) in cur:
+    #        self.catalog[note_name] = note_content
 
-    def get_key(self,num):
-        cur.execute("SELECT note_name FROM notez WHERE note_id=?",(num))
-        return cur.note_name
+    #def get_key(self,num):
+    #    cur.execute("SELECT note_name FROM notez WHERE note_id=?",(num))
+    #    return cur.note_name
 
 try:
     con = mariadb.connect(
@@ -50,15 +57,12 @@ try:
         host = 'localhost',
         database = 'notez'
     )
-    print(mariadb.apilevel)
-
 except mariadb.Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
     sys.exit()
 
 cur = con.cursor()
 shelf = Note_shelf('notes')
-shelf.load_notes()
 
 parser = argparse.ArgumentParser(description = """
     NoteZ 1.0.
@@ -86,15 +90,13 @@ if command == 'new':
     os.system('nvim '+file_path)
 
     with open(file_path,'r') as file:
-        shelf.add_notes(Note(file_name,' '.join(file.readlines())))
+        shelf.add_notes(Note(file_name,''.join(file.readlines())))
         os.remove(file_path)
 
 elif command == 'list':
-    shelf.load_notes()
-    k = 1
-    for i in shelf.catalog:
-        print("{0} ".format(k)+i)
-        k += 1
+    cur.execute("SELECT note_id, note_name FROM notez")
+    for i,j in cur:
+        print(f"{i} {j}")
     print()
 
 elif command == 'help':
@@ -110,16 +112,27 @@ elif command=="show":
     cur.execute("""
         SELECT note_content
         FROM notez
-        WHERE note_id = ? """, (args.number,))
+        WHERE note_id = ?
+        """, (args.number,))
     os.system(f'echo "{cur.fetchone()[0]}" | less')
 
 elif 'edit' in command:
-    os.system(f'echo "{shelf.catalog[target_key]}">{file_path};\
-         nvim {file_path}')
+    cur.execute("""
+        SELECT note_content
+        FROM notez
+        WHERE note_id=?
+        """, (args.number,))
+    os.system(f'echo "{cur.fetchone()[0]}">{file_path};\
+        nvim {file_path}')
     with open(file_path,'r') as file:
-        shelf.catalog[target_key] = ' '.join(file.readlines())
-        shelf.save_notes()
+        cur.execute("""
+            UPDATE notez
+            SET note_content=?
+            WHERE note_id=?
+            """,(''.join(file.readlines()),args.number))
+    con.commit()
     os.remove(file_path)
 elif 'rm' in command:
     del shelf.catalog[target_key]
     shelf.save_notes()
+con.close()
