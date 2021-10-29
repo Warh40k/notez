@@ -23,19 +23,24 @@ class Note_shelf():
         self.path = path
 
     def add_notes(self, note):
-        cur.execute(f"INSERT INTO notez (note_id, note_name, note_content, date_create, date_edit) VALUES(null, '{note.name}', '{note.content}', NOW(), NOW())")
+        cur.execute("""
+            INSERT INTO notez (note_id, note_name,
+            note_content, date_create, date_edit) VALUES(null,
+            ?, ?, NOW(), NOW())
+            """, (note.name,note.content))
         con.commit()
-        #self.catalog[note.name] = note.content
-        #self.save_notes()
+
+#    def save_notes(self):
+#        cur.execute(
 
     def load_notes(self):
         # load notes from bd
-        cur.execute("SELECT note_name, note_content FROM notez;")
+        cur.execute("SELECT note_name, note_content FROM notez")
         for (note_name, note_content) in cur:
             self.catalog[note_name] = note_content
 
     def get_key(self,num):
-        cur.execute(f"SELECT note_name FROM notez WHERE note_id={num};")
+        cur.execute("SELECT note_name FROM notez WHERE note_id=?",(num))
         return cur.note_name
 
 try:
@@ -55,14 +60,15 @@ cur = con.cursor()
 shelf = Note_shelf('notes')
 shelf.load_notes()
 
-parser = argparse.ArgumentParser(description = "NoteZ 1.0. \
-    Written by Nikita Zinkevich. Type '--help' to start. \
-    \nnew - создать новую записку \
-    \nshow - посмотреть имеющиеся \
-    \nopen <название> - посмотреть конкретную запись\
-    \nopen all - вывести содержимое ВСЕХ записей \
-    \nhelp - вызов списка команд\nexit - выход", \
-    formatter_class = argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(description = """
+    NoteZ 1.0.
+    Written by Nikita Zinkevich. Type '--help' to start.
+    \nnew - создать новую записку
+    \nshow - посмотреть имеющиеся
+    \nopen <название> - посмотреть конкретную запись
+    \nopen all - вывести содержимое ВСЕХ записей
+    \nhelp - вызов списка команд\nexit - выход
+    """, formatter_class = argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('option', metavar='OPTION', type=str)
 parser.add_argument('number', metavar='NUM', type=int, nargs='?')
@@ -92,31 +98,28 @@ elif command == 'list':
     print()
 
 elif command == 'help':
-    print('new - создать новую записку \
-        \nshow - посмотреть имеющиеся \
-        \nopen <название> - посмотреть конкретную запись \
-        \nopen all - вывести содержимое ВСЕХ записей \
-        \nhelp - вызов списка команд\nexit - выход')
+    print("""
+        new - создать новую записку
+        \nshow - посмотреть имеющиеся
+        \nopen <название> - посмотреть конкретную запись
+        \nopen all - вывести содержимое ВСЕХ записей
+        \nhelp - вызов списка команд\nexit - выход
+        """)
 
 elif command=="show":
-    cur.execute(f"SELECT note_content\
-        FROM notez\
-        WHERE note_id={args.number};")
+    cur.execute("""
+        SELECT note_content
+        FROM notez
+        WHERE note_id = ? """, (args.number,))
     os.system(f'echo "{cur.fetchone()[0]}" | less')
 
 elif 'edit' in command:
-    try:
-        os.system(f'echo "{shelf.catalog[target_key]}">{file_path}; \
-             nvim {file_path}')
-        with open(file_path,'r') as file:
-            shelf.catalog[target_key] = ' '.join(file.readlines())
-            shelf.save_notes()
-        os.remove(file_path)
-    except e:
-        print('Error: ' + e)
-elif 'rm' in command:
-    try:
-        del shelf.catalog[target_key]
+    os.system(f'echo "{shelf.catalog[target_key]}">{file_path};\
+         nvim {file_path}')
+    with open(file_path,'r') as file:
+        shelf.catalog[target_key] = ' '.join(file.readlines())
         shelf.save_notes()
-    except e:
-        print('Error: '+ e)
+    os.remove(file_path)
+elif 'rm' in command:
+    del shelf.catalog[target_key]
+    shelf.save_notes()
