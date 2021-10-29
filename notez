@@ -28,14 +28,6 @@ class Note_shelf():
         #self.catalog[note.name] = note.content
         #self.save_notes()
 
-    #def save_notes(self):
-    #    # save notes to bd
-    #    k = 1
-    #    cur.execute("DELETE FROM notez;")
-    #    for i in shelf.catalog.keys():
-    #        cur.execute(f"INSERT INTO notez (note_id, note_name, note_content) VALUES({k},'{i.strip()}','{self.catalog[i].strip()}')")
-    #        k+=1
-    #    con.commit()
     def load_notes(self):
         # load notes from bd
         cur.execute("SELECT note_name, note_content FROM notez;")
@@ -79,7 +71,6 @@ command = args.option
 file_path = shelf.path+'/.'
 
 if args.number != None:
-    target_key = shelf.get_key(args.number)
     file_path += str(args.number)
 else:
     file_path += str(len(shelf.catalog)-1)
@@ -108,12 +99,10 @@ elif command == 'help':
         \nhelp - вызов списка команд\nexit - выход')
 
 elif command=="show":
-    # Добавить ввод двух параметров, чтобы потом не делить строку
-    try:
-        string = f'\n\t{target_key}\n\n{shelf.catalog[target_key]}'
-        os.system(f'echo "{string}" | less')
-    except e:
-        print('Error: ' + e)
+    cur.execute(f"SELECT note_content\
+        FROM notez\
+        WHERE note_id={args.number};")
+    os.system(f'echo "{cur.fetchone()[0]}" | less')
 
 elif 'edit' in command:
     try:
